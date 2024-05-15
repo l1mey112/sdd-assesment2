@@ -26,7 +26,11 @@
 #include <time.h>
 #include <stdlib.h>
 
-void init2(void) {}
+void init2(void) {
+	ImFont *font = ImFontAtlas_AddFontFromFileTTF(igGetIO()->Fonts, "TerminusTTF-4.49.3.ttf", 26, NULL, NULL);
+
+	
+}
 
 typedef struct {
 	const char *name;
@@ -39,6 +43,7 @@ enum {
 };
 
 struct {
+	int i;
 	int pivot;
 	int sort_kind;
 	int entries_len;
@@ -119,6 +124,7 @@ void main_window(void) {
 		igTableNextColumn();
 		{
 			if (igButton("Go Sort!", V2ZERO)) {
+				bubble_sort_data.i = 1;
 				bubble_sort_data.pivot = entries_len;
 				bubble_sort_data.sort_kind = sort_kind;
 				bubble_sort_data.entries_len = entries_len;
@@ -176,23 +182,28 @@ void sort_window() {
 
 	if (do_next) {
 		// perform 1 iteration, at most one swap
+		if (bubble_sort_data.i >= bubble_sort_data.pivot) {
+			bubble_sort_data.i = 1;
+			bubble_sort_data.pivot--;	
+		}
+
 		if (bubble_sort_data.sort_kind == SORT_SCORE) {
-			if (bubble_sort_data.name_entries[bubble_sort_data.pivot - 1].score > bubble_sort_data.name_entries[bubble_sort_data.pivot].score) {
-				bubble_sort_swap(bubble_sort_data.name_entries, bubble_sort_data.pivot - 1, bubble_sort_data.pivot);
-				bubble_sort_data.pivot--;
+			if (bubble_sort_data.name_entries[bubble_sort_data.i - 1].score > bubble_sort_data.name_entries[bubble_sort_data.i].score) {
+				bubble_sort_swap(bubble_sort_data.name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
 			}
-		} else if (bubble_sort_data.sort_kind == SORT_ALPHABETICAL) {
-			if (strcmp(bubble_sort_data.name_entries[bubble_sort_data.pivot - 1].name, bubble_sort_data.name_entries[bubble_sort_data.pivot].name) > 0) {
-				bubble_sort_swap(bubble_sort_data.name_entries, bubble_sort_data.pivot - 1, bubble_sort_data.pivot);
-				bubble_sort_data.pivot--;
+		} else {
+			if (strcmp(bubble_sort_data.name_entries[bubble_sort_data.i - 1].name, bubble_sort_data.name_entries[bubble_sort_data.i].name) > 0) {
+				bubble_sort_swap(bubble_sort_data.name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
 			}
 		}
+
+		bubble_sort_data.i++;
 	}
 
 	igSeparator();
 
 	// Display the sorted array
-	if (igBeginTable("Sorted Array", 2, 0, V2ZERO, 20.0f)) {
+	if (igBeginTable("Sorted Array", 2, ImGuiTableFlags_Borders, V2ZERO, 20.0f)) {
 		for (int i = 0; i < bubble_sort_data.entries_len; i++) {
 			igTableNextRow(0, 0);
 
