@@ -4,8 +4,12 @@ CFLAGS =
 FCFLAGS =
 
 ifeq ($(PROD),1)
-	CFLAGS += -Oz --closure=1 -flto
+	CFLAGS += -Oz --closure=1 -flto -sASSERTIONS=1
 	FCFLAGS += -sMINIFY_HTML -sEVAL_CTORS=2
+else
+	CFLAGS += -g
+	FCFLAGS += -sASSERTIONS=2
+#	FCFLAGS += --use-preload-plugins --preload-file ./assets@/
 endif
 
 .PHONY: all
@@ -31,10 +35,9 @@ public/:
 public/index.html: $(DEMOS_SRC) build/libsokol.a build/libcimgui.a src/demos.h
 	emcc -o $@ $(DEMOS_SRC) $(CFLAGS) $(FCFLAGS) \
 		--shell-file sokol/shell.html \
-		-sASSERTIONS=0 \
+		-sUSE_WEBGL2=1 \
 		-sMALLOC=emmalloc \
 		-Isokol -Icimgui -Iinclude \
-		--use-preload-plugins --preload-file ./assets@/ \
 		build/libsokol.a build/libcimgui.a
 ifeq ($(PROD),1)
 	wasm-opt $(patsubst %.html, %.wasm, $@) -o $(patsubst %.html, %.wasm, $@) \

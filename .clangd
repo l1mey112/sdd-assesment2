@@ -8,9 +8,9 @@ CompileFlags:
     --sysroot=/home/l-m/git/emsdk/upstream/emscripten/cache/sysroot,
     -Xclang,
     -iwithsysroot/include/compat,
-    -I/home/l-m/git/sdd-assesment/include,
-    -I/home/l-m/git/sdd-assesment/cimgui,
-    -I/home/l-m/git/sdd-assesment/sokol,
+    -I/home/l-m/git/sdd-assesment2/include,
+    -I/home/l-m/git/sdd-assesment2/cimgui,
+    -I/home/l-m/git/sdd-assesment2/sokol,
     -Wno-unused-parameter,
     -Wno-unused-function,
     -Wall,
@@ -18,3 +18,4 @@ CompileFlags:
     -Wshadow,
     -std=gnu11,
   ]
+  

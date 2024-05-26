@@ -122,7 +122,7 @@ extern "C" {
 #endif
 
 /*
-    Plug this function into the 'logger.func' struct item when initializating any of the sokol
+    Plug this function into the 'logger.func' struct item when initializing any of the sokol
     headers. For instance for sokol_audio.h it would loom like this:
 
     saudio_setup(&(saudio_desc){
@@ -193,7 +193,7 @@ SOKOL_LOG_API_DECL void slog_func(const char* tag, uint32_t log_level, uint32_t 
 #include <stddef.h> // size_t
 
 #if defined(_SLOG_EMSCRIPTEN)
-#include <emscripten/em_js.h>
+#include <emscripten/emscripten.h>
 #elif defined(_SLOG_WINDOWS)
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN

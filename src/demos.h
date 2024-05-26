@@ -31,8 +31,29 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
-#include "HandmadeMath.h"
 #include <emscripten.h>
+
+// Helpers macros to generate 32-bit encoded colors
+// User can declare their own format by #defining the 5 _SHIFT/_MASK macros in their imconfig file.
+#ifndef IM_COL32_R_SHIFT
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+#define IM_COL32_R_SHIFT    16
+#define IM_COL32_G_SHIFT    8
+#define IM_COL32_B_SHIFT    0
+#define IM_COL32_A_SHIFT    24
+#define IM_COL32_A_MASK     0xFF000000
+#else
+#define IM_COL32_R_SHIFT    0
+#define IM_COL32_G_SHIFT    8
+#define IM_COL32_B_SHIFT    16
+#define IM_COL32_A_SHIFT    24
+#define IM_COL32_A_MASK     0xFF000000
+#endif
+#endif
+#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
+#define IM_COL32_WHITE       IM_COL32(255,255,255,255)  // Opaque white = 0xFFFFFFFF
+#define IM_COL32_BLACK       IM_COL32(0,0,0,255)        // Opaque black
+#define IM_COL32_BLACK_TRANS IM_COL32(0,0,0,0)          // Transparent black = 0x00000000
 
 static inline ImVec2 Vec2(float x, float y)
 {
@@ -204,30 +225,57 @@ EM_JS(bool, is_inside_iframe, (), {
 static ImDrawList *__dl;
 static ImGuiIO *__io;
 
-#ifdef USE_INIT2
-static __attribute__((unused)) void init2(void);
-#endif // USE_INIT2
+
+static void init1(void) {
+	// i tried....
+
+	/* ImGuiIO* io = igGetIO();
+	ImFontConfig fontCfg = {};
+	fontCfg.FontDataOwnedByAtlas = false;
+	fontCfg.OversampleH = 2; 
+	fontCfg.OversampleV = 2; 
+	fontCfg.RasterizerMultiply = 1.5f; 
+	ImFontAtlas_AddFontFromFileTTF(io->Fonts, "RobotoMono-Medium.ttf", 16.f, &fontCfg, NULL);
+
+	// create font texture for the custom font
+	unsigned char* font_pixels;
+	int font_width, font_height;
+	int bytes_per_pixel;
+	ImFontAtlas_GetTexDataAsRGBA32(io->Fonts, &font_pixels, &font_width, &font_height, &bytes_per_pixel);
+	sg_image_desc img_desc = {};
+	img_desc.width = font_width;
+	img_desc.height = font_height;
+	img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+	//img_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
+	//img_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
+	//img_desc.min_filter = SG_FILTER_LINEAR;
+	//img_desc.mag_filter = SG_FILTER_LINEAR;
+	img_desc.data.subimage[0][0].ptr = font_pixels;
+	img_desc.data.subimage[0][0].size = font_width * font_height * 4;
+	io->Fonts->TexID = (ImTextureID)(uintptr_t)sg_make_image(&img_desc).id; */
+}
 
 static struct
 {
 	sg_pass_action pass_action;
-} state;
+} __demo_state;
 
 static void init(void)
 {
 	sg_setup(&(sg_desc){
-		.context = sapp_sgcontext(),
+		.environment = sglue_environment(),
 		.logger.func = slog_func,
 	});
-	simgui_setup(&(simgui_desc_t){0});
+	simgui_setup(&(simgui_desc_t){
+		.no_default_font = true,
+	});
 
 	// initial clear color
-	state.pass_action = (sg_pass_action){
-		.colors[0] = {.action = SG_ACTION_CLEAR, .value = {0.0f, 0.0f, 0.0f, 1.0f}}};
-
-#ifdef USE_INIT2
-	init2();
-#endif // USE_INIT2
+	__demo_state.pass_action = (sg_pass_action) {
+		.colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 1.0f} }
+	};
+	
+	init1();
 }
 
 void frame(void);
@@ -272,13 +320,13 @@ sapp_desc sokol_main(int argc, char *argv[])
 		__io = igGetIO();                        \
 	} while (0)
 
-#define FRAME_PASS_END                                                          \
-	do                                                                          \
-	{                                                                           \
-		sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height()); \
-		simgui_render();                                                        \
-		sg_end_pass();                                                          \
-		sg_commit();                                                            \
+#define FRAME_PASS_END                                                                            \
+	do                                                                                            \
+	{                                                                                             \
+		sg_begin_pass(&(sg_pass){ .action = __demo_state.pass_action, .swapchain = sglue_swapchain() }); \
+		simgui_render();                                                                          \
+		sg_end_pass();                                                                            \
+		sg_commit();                                                                              \
 	} while (0)
 
 static void ABOUT_WIDGET()
@@ -386,7 +434,7 @@ static inline ImVec2 DELTA_SCROLL()
 	} while(0)
 
 
-static void arrow(ImVec2 start, ImVec2 end, ImU32 color, float thickness, float sz)
+/* static void arrow(ImVec2 start, ImVec2 end, ImU32 color, float thickness, float sz)
 {
 	ImDrawList_AddLine(__dl, start, end, color, thickness);
 
@@ -400,7 +448,7 @@ static void arrow(ImVec2 start, ImVec2 end, ImU32 color, float thickness, float 
 				 end.y - norm_dir.y * sz - norm_dir.x * sz * 0.6};
 
 	ImDrawList_AddTriangleFilled(__dl, end, p1, p2, color);
-}
+} */
 
 ImVec2 nice_box_size(const char *label)
 {
