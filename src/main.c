@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 l-m.dev
+ * Copyright (C) 2024 l-m.dev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -87,6 +87,137 @@ bool is_sorted_by_score() {
 	}
 
 	return true;
+}
+
+void part_a_search_window() {
+	igBegin("Search", 0, ImGuiWindowFlags_AlwaysAutoResize);
+
+	bool do_next = false;
+
+	bool complete = false;
+	int found_index = -1;
+
+	int mid = (binary_search_data.left_bound + binary_search_data.right_bound) / 2;
+
+	if (search_kind == SEARCH_LINEAR) {
+		if (linear_search_data.i >= entries_len) {
+			complete = true;
+			
+		} else if (name_entries[linear_search_data.i].score == search_target_score) {
+			found_index = linear_search_data.i;
+			complete = true;
+		}
+	} else {
+		if (binary_search_data.left_bound > binary_search_data.right_bound) {
+			complete = true;
+		} else if (name_entries[mid].score == search_target_score) {
+			found_index = mid;
+			complete = true;
+		}
+	}
+
+	bool exit = false;
+
+	if (igBeginTable("Search", 2, 0, V2ZERO, 20.0f)) {
+		igTableNextRow(0, 0);
+
+		igBeginDisabled(complete);
+		igTableNextColumn();
+		{
+			do_next = igButton("Next Step", V2ZERO);
+		}
+		if (search_kind == SEARCH_BINARY) {
+			igTableNextColumn();
+			{
+				igText("Left: %d, Right: %d, Mid: %d", binary_search_data.left_bound, binary_search_data.right_bound, mid);
+			}
+		} else {
+			igTableNextColumn();
+			{
+				igText("Search Index: %d (name: %s, score: %u)", linear_search_data.i, name_entries[linear_search_data.i].name, name_entries[linear_search_data.i].score);
+			}
+		}
+		igEndDisabled();
+
+		if (complete) {
+			if (found_index == -1) {
+				igSeparator();
+				igText("Not found.");
+			} else {
+				igSeparator();
+				igText("Found at index %d. (name: %s, score %u)", found_index, name_entries[found_index].name, name_entries[found_index].score);
+			}
+
+			if (igButton("Exit", V2ZERO)) {
+				exit = true;
+			}
+		}
+
+		igEndTable();
+	}
+
+	if (do_next) {
+		if (search_kind == SEARCH_LINEAR) {
+			linear_search_data.i++;
+		} else {
+			if (name_entries[mid].score < search_target_score) {
+				binary_search_data.left_bound = mid + 1;
+			} else {
+				binary_search_data.right_bound = mid - 1;
+			}
+		}
+	}
+
+	igEnd();
+
+	if (exit) {
+		state_kind = STATE_NONE;
+	}
+}
+
+void part_a_sort_window() {
+	// bubble sort complete
+	if (bubble_sort_data.pivot == 0) {
+		state_kind = STATE_NONE;
+		return;
+	}
+
+	igBegin("Sort", 0, ImGuiWindowFlags_AlwaysAutoResize);
+
+	bool do_next = false;
+	
+	if (igBeginTable("Sort", 2, 0, V2ZERO, 20.0f)) {
+		igTableNextRow(0, 0);
+
+		igTableNextColumn();
+		{
+			do_next = igButton("Next Step", V2ZERO);
+		}
+
+		igEndTable();
+	}
+
+	if (do_next) {
+		// perform 1 iteration, at most one swap
+		if (bubble_sort_data.i >= bubble_sort_data.pivot) {
+			bubble_sort_data.i = 1;
+			bubble_sort_data.pivot--;	
+		}
+
+		if (sort_kind == SORT_SCORE) {
+			if (name_entries[bubble_sort_data.i - 1].score > name_entries[bubble_sort_data.i].score) {
+				bubble_sort_swap(name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
+			}
+		} else {
+			if (strcmp(name_entries[bubble_sort_data.i - 1].name, name_entries[bubble_sort_data.i].name) > 0) {
+				bubble_sort_swap(name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
+			}
+		}
+
+		bubble_sort_data.i++;
+	}
+
+	igEnd();
 }
 
 void part_a_window(void) {
@@ -218,137 +349,6 @@ void part_a_window(void) {
 		}
 
 		igEndTable();
-	}
-
-	igEnd();
-}
-
-void part_a_search_window() {
-	igBegin("Search", 0, ImGuiWindowFlags_AlwaysAutoResize);
-
-	bool do_next = false;
-
-	bool complete = false;
-	int found_index = -1;
-
-	int mid = (binary_search_data.left_bound + binary_search_data.right_bound) / 2;
-
-	if (search_kind == SEARCH_LINEAR) {
-		if (linear_search_data.i >= entries_len) {
-			complete = true;
-			
-		} else if (name_entries[linear_search_data.i].score == search_target_score) {
-			found_index = linear_search_data.i;
-			complete = true;
-		}
-	} else {
-		if (binary_search_data.left_bound > binary_search_data.right_bound) {
-			complete = true;
-		} else if (name_entries[mid].score == search_target_score) {
-			found_index = mid;
-			complete = true;
-		}
-	}
-
-	bool exit = false;
-
-	if (igBeginTable("Search", 2, 0, V2ZERO, 20.0f)) {
-		igTableNextRow(0, 0);
-
-		igBeginDisabled(complete);
-		igTableNextColumn();
-		{
-			do_next = igButton("Next Step", V2ZERO);
-		}
-		if (search_kind == SEARCH_BINARY) {
-			igTableNextColumn();
-			{
-				igText("Left: %d, Right: %d, Mid: %d", binary_search_data.left_bound, binary_search_data.right_bound, mid);
-			}
-		} else {
-			igTableNextColumn();
-			{
-				igText("Search Index: %d (name: %s, score: %u)", linear_search_data.i, name_entries[linear_search_data.i].name, name_entries[linear_search_data.i].score);
-			}
-		}
-		igEndDisabled();
-
-		if (complete) {
-			if (found_index == -1) {
-				igSeparator();
-				igText("Not found.");
-			} else {
-				igSeparator();
-				igText("Found at index %d. (name: %s, score %u)", found_index, name_entries[found_index].name, name_entries[found_index].score);
-			}
-
-			if (igButton("Exit", V2ZERO)) {
-				exit = true;
-			}
-		}
-
-		igEndTable();
-	}
-
-	if (do_next) {
-		if (search_kind == SEARCH_LINEAR) {
-			linear_search_data.i++;
-		} else {
-			if (name_entries[mid].score < search_target_score) {
-				binary_search_data.left_bound = mid + 1;
-			} else {
-				binary_search_data.right_bound = mid - 1;
-			}
-		}
-	}
-
-	igEnd();
-
-	if (exit) {
-		state_kind = STATE_NONE;
-	}
-}
-
-void part_a_sort_window() {
-	// bubble sort complete
-	if (bubble_sort_data.pivot == 0) {
-		state_kind = STATE_NONE;
-		return;
-	}
-
-	igBegin("Sort", 0, ImGuiWindowFlags_AlwaysAutoResize);
-
-	bool do_next = false;
-	
-	if (igBeginTable("Sort", 2, 0, V2ZERO, 20.0f)) {
-		igTableNextRow(0, 0);
-
-		igTableNextColumn();
-		{
-			do_next = igButton("Next Step", V2ZERO);
-		}
-
-		igEndTable();
-	}
-
-	if (do_next) {
-		// perform 1 iteration, at most one swap
-		if (bubble_sort_data.i >= bubble_sort_data.pivot) {
-			bubble_sort_data.i = 1;
-			bubble_sort_data.pivot--;	
-		}
-
-		if (sort_kind == SORT_SCORE) {
-			if (name_entries[bubble_sort_data.i - 1].score > name_entries[bubble_sort_data.i].score) {
-				bubble_sort_swap(name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
-			}
-		} else {
-			if (strcmp(name_entries[bubble_sort_data.i - 1].name, name_entries[bubble_sort_data.i].name) > 0) {
-				bubble_sort_swap(name_entries, bubble_sort_data.i - 1, bubble_sort_data.i);
-			}
-		}
-
-		bubble_sort_data.i++;
 	}
 
 	igEnd();

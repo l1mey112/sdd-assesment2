@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 l-m.dev
+ * Copyright (C) 2024 l-m.dev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -328,43 +328,6 @@ sapp_desc sokol_main(int argc, char *argv[])
 		sg_end_pass();                                                                            \
 		sg_commit();                                                                              \
 	} while (0)
-
-static void ABOUT_WIDGET()
-{
-	if (is_inside_iframe())
-		return;
-
-	ImGuiWindowFlags pinned_window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	ImVec2 window_pos;
-	const ImGuiViewport *viewport = igGetMainViewport();
-	const float PAD = 10.0f;
-	// Bottom Left!
-	window_pos.x = viewport->WorkPos.x + PAD;
-	window_pos.y = viewport->WorkPos.y + viewport->WorkSize.y - PAD;
-	igSetNextWindowPos(window_pos, ImGuiCond_Always, (ImVec2){0.f, 1.f});
-	igBegin("About", 0, pinned_window_flags);
-	{
-		igText("Copyright (C) 2022 l-m.dev.");
-		igText("Software is held according to the MIT open source license.");
-		igSeparator();
-		igText("Created at ");
-		igSameLine(0, 0);
-		if (igButton("https://l-m.dev", (ImVec2){0.f, 0.f}))
-		{
-			open_in_new_tab("https://l-m.dev");
-		}
-		igSameLine(0, 0);
-		igText(" in C, using Emscripten and Dear ImGui.");
-		igSeparator();
-		igText("Full source code resides at ");
-		igSameLine(0, 0);
-		if (igButton("l1mey112/yr11-physics-applied", (ImVec2){0.f, 0.f}))
-		{
-			open_in_new_tab("https://github.com/l1mey112/yr11-physics-applied");
-		}
-	}
-	igEnd();
-}
 
 static void BLIT_BG(ImU32 col)
 {
