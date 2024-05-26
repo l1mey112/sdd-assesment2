@@ -1,0 +1,55 @@
+digraph PartBWindow {
+    // Start and End points
+    node [shape=ellipse];
+    Start [label="Start"];
+    End [label="End"];
+
+    // Main function
+    node [shape=box];
+    PartBWindow [label="part_b_window()"];
+
+    // If conditions (Diamonds)
+    StateInsertCheck [shape=diamond, label="state == STATE_INSERT?"];
+    StateDisplayCheck [shape=diamond, label="state == STATE_DISPLAY?"];
+    EditOrSaveButtonCheck [shape=diamond, label="igButton('Edit') or igButton('Save') Clicked?"];
+    InsertButtonCheck [shape=diamond, label="igButton('Insert') Clicked?"];
+
+    // Sequences (Boxes)
+    CursorSplice [label="splice_in_cursor()"];
+    InputInitialSentence [label="igInputText('Enter Initial Sentence')"];
+    EditButtonAction [label="state = STATE_INSERT"];
+    SaveButtonAction [label="state = STATE_DISPLAY"];
+    CursorControl [label="igButton('Left') and cursor_location-- if possible\nigButton('Right') and cursor_location++ if possible"];
+    CursorLocationDisplay [label="igText('Cursor Location: %d')"];
+    InputInsertSentence [label="igInputTextEx('Insert Sentence')"];
+    InsertStringLogic [label="insert_string_into_array(initial_sentence, insert_string, initial_sentence_len, insert_len, cursor_location)"];
+
+    // Graph structure
+    Start -> PartBWindow
+    PartBWindow -> StateInsertCheck
+
+    StateInsertCheck -> CursorSplice [label="Yes"]
+    StateInsertCheck -> InputInitialSentence [label="No"]
+
+    CursorSplice -> InputInitialSentence
+    InputInitialSentence -> StateDisplayCheck
+
+    StateDisplayCheck -> EditOrSaveButtonCheck [label="Yes"]
+    StateDisplayCheck -> CursorControl [label="No"]
+
+    EditOrSaveButtonCheck -> EditButtonAction [label="Clicked 'Edit'"]
+    EditOrSaveButtonCheck -> SaveButtonAction [label="Clicked 'Save'"]
+    EditButtonAction -> CursorControl
+    SaveButtonAction -> CursorControl
+
+    CursorControl -> CursorLocationDisplay
+    CursorLocationDisplay -> InputInsertSentence
+    InputInsertSentence -> InsertButtonCheck
+    InsertButtonCheck -> InsertStringLogic [label="Yes"]
+    InsertButtonCheck -> End [label="No"]
+
+    InsertStringLogic -> End
+
+    // Optional styles
+    node [style=filled, fillcolor=lightgrey];
+}

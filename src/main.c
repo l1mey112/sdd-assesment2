@@ -379,7 +379,7 @@ void part_b_window() {
 
 	enum {
 		STATE_DISPLAY,
-		STATE_INPUT,
+		STATE_INSERT,
 	};
 
 	static int state = STATE_DISPLAY;
@@ -389,7 +389,7 @@ void part_b_window() {
 	{
 		char *display_text = initial_sentence;
 		
-		if (state == STATE_INPUT) {
+		if (state == STATE_INSERT) {
 			static char edit_sentence[256];
 			
 			// splice in a cursor at the cursor location
@@ -408,7 +408,7 @@ void part_b_window() {
 
 		if (state == STATE_DISPLAY) {
 			if (igButton("Edit", V2ZERO)) {
-				state = STATE_INPUT;
+				state = STATE_INSERT;
 			}
 		} else {
 			if (igButton("Save", V2ZERO)) {
